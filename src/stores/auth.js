@@ -239,11 +239,52 @@ export const useAuthStore = defineStore('auth', {
     },
 
     /**
-     * Update user profile data
+     * Update user profile data (local only)
      */
     updateUser(userData) {
       this.user = { ...this.user, ...userData }
       localStorageService.setItem(STORAGE_KEYS.USER, this.user)
+    },
+
+    /**
+     * Update user profile via API
+     */
+    async updateProfile(userData) {
+      try {
+        console.log('Calling API to update profile:', userData)
+        const response = await axios.patch('/auth/profile', userData)
+        console.log('API response:', response.data)
+
+        if (response.data?.success) {
+          // Update local user data with the response
+          const updatedUser = response.data?.person || response.data?.user
+          if (updatedUser) {
+            console.log('Updating user with response data:', updatedUser)
+            this.updateUser(updatedUser)
+          } else {
+            console.warn('No person/user in response, using provided data')
+            // Fallback: update with provided data
+            this.updateUser(userData)
+          }
+
+          Notify.create({
+            message: 'Profile updated successfully!',
+            color: 'positive',
+            position: 'top',
+            timeout: 3000,
+          })
+          return true
+        } else {
+          const errorMsg = response.data?.message || 'Failed to update profile'
+          console.error('API returned failure:', errorMsg)
+          this.showErrorNotification(errorMsg)
+          return false
+        }
+      } catch (error) {
+        console.error('Error updating profile:', error)
+        console.error('Error response:', error.response?.data)
+        return this.handleApiError(error, 'Failed to update profile')
+      }
     },
 
     /**

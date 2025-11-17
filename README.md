@@ -1,4 +1,4 @@
-# Rococo Sample App (rococo-sample-vue3)
+# ToDo Sample App (ToDo-vue3)
 
 A Vue3 starting point for rococo-based web apps
 
